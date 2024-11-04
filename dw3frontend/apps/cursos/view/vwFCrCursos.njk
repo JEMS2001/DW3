@@ -1,0 +1,122 @@
+{% extends "templates/base.html" %}
+
+{% block content %}
+  <div x-data="CursoForm()">
+    <ol class="breadcrumb mb-2">
+      <li class="breadcrumb-item active">{{title}}</li>
+    </ol>
+    <div class="row">
+      <div class="col-12">
+
+        <div class="card-header">
+          {{tite}}
+        </div>
+
+        <div class="card-body">
+          <div class="">
+
+            {# <form @submit.prevent="submitForm"> #}
+            <form>
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="cursoid">Curso</label>
+                    <input type="text" class="form-control" id="codigo" x-model="form.codigo" required="required">
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="form-group col-md-6">
+                <label for="endereco">Descrição</label>
+                <input type="text" class="form-control" id="descricao" x-model="form.descricao">
+              </div>
+
+              <div class="form-group col-md-6">
+                <label for="rendafamiliar">Ativo</label>
+                <input type="checkbox" class="form-check-input" id="ativo" x-model="form.ativo">
+              </div>
+
+              <button type="button" @click="insertForm()" class="btn btn-primary mt-4">Salvar</button>
+              <a href="/cursos/manutCursos" class="btn btn-info mt-4 ml-2" role="button" aria-disabled="true">Retornar</a>
+            </form>
+
+            <div class="mt-3">
+              <template x-if="message">
+                <div :class="messageClass" x-text="message"></div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    window.onload = function () {
+      windowOnLoad();
+
+      //@ Caso tenha dado erro no servidor frontEnd, ele será mostrado aqui.
+      const localErro = "{{erro}}";
+      if (localErro != "") {
+        alert("[vwAlunos|onload]Servidor retornou o erro:" + localErro);
+      }
+      $("#cursoid").focus();
+
+    };
+
+    function CursoForm() {
+      return {
+        form: {
+          codigo: '',
+          descricao: '',
+          ativo: true,
+          deleted: false
+        },
+        message: '',
+        messageClass: '',
+
+        async insertForm() {
+          try {
+            console.log("Valor na página:", JSON.stringify(this.form))
+            const response = await fetch('/cursos/InsertCursos', {
+              method: 'POST',
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(this.form)
+            });
+            
+            const result = await response.json();
+            console.log("Valor na response:", response);
+            console.log("Valor na result:", result);
+            if (result.status=="ok") {
+              alert("Aluno cadastrado com suscesso");
+              this.resetForm();
+            } else {
+              const errorData = result.status;
+              this.message = `Erro! Não foi possível cadastrar o aluno devido ao erro: ${errorData}`;
+              this.messageClass = 'alert alert-danger';
+            }
+          } catch (error) {
+            this.message = `Erro de conexão: ${error.message}`;
+            this.messageClass = 'alert alert-danger';
+          }
+        },
+
+        resetForm() {
+          this.form = {
+            codigo: '',
+            descricao: '',
+            ativo: true,
+            deleted: false
+          };
+          this.message=false;
+        }
+      };
+    }
+  </script>
+
+{% endblock %}
